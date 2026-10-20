@@ -62,7 +62,10 @@ export PATH
 # Каталог сборки. По умолчанию стандартный target внутри проекта, но его
 # можно переопределить переменной окружения: на этой машине Defender
 # лочит .cargo-artifact-lock в Documents, поэтому каталог выносят наружу.
-export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$SCRIPT_DIR/src-tauri/target}"
+# Cargo ждёт нативный путь, а SCRIPT_DIR в Git Bash это MSYS-путь,
+# поэтому приводим через cygpath, иначе получится C:\c\Users\...
+_default_target="$(cygpath -w "$SCRIPT_DIR/src-tauri/target" 2>/dev/null || echo "$SCRIPT_DIR/src-tauri/target")"
+export CARGO_TARGET_DIR="${CARGO_TARGET_DIR:-$_default_target}"
 mkdir -p "$CARGO_TARGET_DIR"
 
 # Проверка, что link.exe теперь из MSVC, а не из coreutils.
