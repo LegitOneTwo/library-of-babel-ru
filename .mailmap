@@ -1,0 +1,11 @@
+# Сопоставление авторов коммитов.
+#
+# GitHub определяет контрибьютентов по email, который записан в коммите.
+# Первые коммиты этого проекта были подписаны адресом
+# legitplayer@users.noreply.github.com, который принадлежит стороннему
+# аккаунту, и GitHub приписывал их ему. После переписывания истории адрес
+# изменён, но старые коммиты ещё какое-то время висят в базе GitHub.
+#
+# Эта строка говорит GitHub и git, что коммиты с таким email принадлежат
+# LegitOneTwo, и в списке контрибьюторов посторонний аккаунт не появляется.
+legitplayer@users.noreply.github.com <legitplayer@users.noreply.github.com> LegitOneTwo <103181968+LegitOneTwo@users.noreply.github.com>
