@@ -115,7 +115,7 @@ MSVC 14.44.35207 и Windows SDK 10.0.26100.0: поправьте версии п
 
 ```bash
 npm run build                    # типы + сборка фронтенда
-cd src-tauri && cargo test --lib # 30 тестов движка
+cd src-tauri && cargo test --lib # 31 тест движка
 cd src-tauri && cargo fmt --check
 cd src-tauri && cargo clippy --all-targets -- -D warnings
 python tools/check_contrast.py   # контраст обеих тем
