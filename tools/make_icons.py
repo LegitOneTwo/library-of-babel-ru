@@ -91,7 +91,9 @@ def write_png(path, size):
     def chunk(tag, data):
         c = struct.pack(">I", len(data)) + tag + data
         return c + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
-    header = struct.pack(">IIBBBBB", size, size, 8, 2, 0, 0, 0)
+    # Тип 6 = RGBA. Tauri требует альфа-канал: на Windows сборка проходит и с
+    # RGB (тип 2), а на Linux generate_context! падает с "icon ... is not RGBA".
+    header = struct.pack(">IIBBBBB", size, size, 8, 6, 0, 0, 0)
     png = (
         b"\x89PNG\r\n\x1a\n"
         + chunk(b"IHDR", header)
