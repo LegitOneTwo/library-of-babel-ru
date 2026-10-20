@@ -409,6 +409,29 @@ mod tests {
         assert_eq!(PIXELS % 2, 0);
     }
 
+    /// Цвета рамки должны быть различными индексами палитры: иначе
+    /// интерфейс покажет несколько одинаковых пунктов выбора.
+    #[test]
+    fn border_colors_are_distinct() {
+        let all = [
+            BORDER_GREY,
+            BORDER_BLACK,
+            BORDER_WHITE,
+            BORDER_RED,
+            BORDER_GREEN,
+            BORDER_BLUE,
+            BORDER_YELLOW,
+            BORDER_ORANGE,
+            BORDER_PURPLE,
+        ];
+        for (i, a) in all.iter().enumerate() {
+            assert!(*a < COLORS as u16, "индекс рамки вне палитры");
+            for b in &all[i + 1..] {
+                assert_ne!(a, b, "цвета рамки повторяются");
+            }
+        }
+    }
+
     #[test]
     fn palette_roundtrip() {
         for i in 0..COLORS as u16 {
