@@ -10,6 +10,8 @@
  * а не состояние сессии, и она должна пережить перезапуск приложения.
  */
 
+import { runningInTauri } from "./api";
+
 export type Theme = "dark" | "light";
 
 const STORAGE_KEY = "babel.theme";
@@ -38,11 +40,30 @@ export function currentTheme(): Theme {
   return "dark";
 }
 
+/**
+ * Применяет тему к интерфейсу и к заголовку окна.
+ *
+ * Заголовок окна рисует система, и если оставить его тёмным, то в светлой
+ * теме он выбивается: тёмная полоса над светлым интерфейсом. Поэтому тема
+ * окна следует за темой интерфейса.
+ */
 export function applyTheme(theme: Theme): void {
   if (theme === "light") {
     document.documentElement.setAttribute("data-theme", "light");
   } else {
     document.documentElement.removeAttribute("data-theme");
+  }
+  void applyWindowTheme(theme);
+}
+
+/** Проставляет тему системному заголовку окна, если приложение в Tauri. */
+async function applyWindowTheme(theme: Theme): Promise<void> {
+  if (!runningInTauri) return;
+  try {
+    const { getCurrentWindow } = await import("@tauri-apps/api/window");
+    await getCurrentWindow().setTheme(theme);
+  } catch {
+    // Заголовок окна останется системным: это не ломает интерфейс.
   }
 }
 
