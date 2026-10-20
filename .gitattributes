@@ -1,0 +1,16 @@
+# Переносы строк: в репозитории всегда LF, в рабочей копии как у платформы.
+# Это избавляет от «всё изменено» при правке одной строки на Windows.
+
+* text=auto eol=lf
+
+# Windows-скрипты обязаны быть с CRLF, иначе cmd их не выполнит.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Бинарники
+*.png binary
+*.ico binary
+*.icns binary
+*.exe binary
+*.msi binary

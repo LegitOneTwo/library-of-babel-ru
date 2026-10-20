@@ -1,0 +1,1271 @@
+/*
+ * Оформление Вавилонской библиотеки.
+ *
+ * Направление и обоснование каждого решения: DESIGN.md.
+ * Палитра сужена до нейтралей и одного акцента, контраст всех пар
+ * посчитан скриптом contrast-check.py из antislop-human.
+ *
+ * Тёмная тема (Catppuccin Mocha) и светлая (Catppuccin Latte) заданы
+ * одними и теми же токенами: компоненты не знают про темы, они знают
+ * только про --bg, --ink и прочие переменные. Все пары обеих тем
+ * проверены скриптом, порог 4.5:1 для текста и 3:1 для нетекстовых
+ * элементов.
+ */
+
+:root {
+  /* Поверхности: тёмная библиотека, панель темнее фона, чтобы читалась плоскостью. */
+  --bg: #1e1e2e;
+  --panel: #181825;
+  --panel-2: #313244;
+  /* --line это граница поля, а не декоративный разделитель: он должен
+     проходить 3:1 на всех трёх поверхностях, поэтому темнее, чем
+     --line-soft, но светлее, чем --ink-3. */
+  --line: #7c7f93;
+  --line-soft: #313244;
+
+  /* Текст. */
+  --ink: #cdd6f4;
+  --ink-2: #a6adc8;
+  --ink-3: #9399b2;
+
+  /* Единственный акцент. */
+  --accent: #fab387;
+  --accent-ink: #181825;
+  --danger: #f38ba8;
+  --ok: #a6e3a1;
+
+  /* Подложки подсветки: считаны смесью акцента с поверхностью, а не
+     color-mix в разметке, потому что в светлой теме смешивать с белым
+     нельзя: подложка съела бы контраст текста. */
+  --mark-bg: #5c4642;
+  --accent-tint: #51474f;
+  /* Знак в алфавите: тинт светлее, иначе danger на нём даёт 4.12:1
+     вместо нужных 4.5:1. */
+  --danger-tint: #41394c;
+
+  /* Затемнение поверх мобильного меню. */
+  --scrim: rgba(10, 10, 16, 0.55);
+
+  /* Радиусы: три ступени, а не пилюли у всего подряд. */
+  --r-sm: 3px;
+  --r-md: 6px;
+  --r-lg: 10px;
+
+  --book: Constantia, Cambria, Georgia, "Times New Roman", serif;
+  --ui: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+
+  --tap: 44px;
+
+  /* Тема по умолчанию задаётся атрибутом на <html>: светлая переопределяет
+     токены ниже. Тёмная остаётся в :root, чтобы не дублировать значения. */
+  color-scheme: dark;
+}
+
+/* Светлая тема: Catppuccin Latte, тот же набор ролей. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #eff1f5;
+  --panel: #e6e9ef;
+  --panel-2: #ccd0da;
+  /* --line это граница поля: она должна проходить 3:1 на всех трёх
+     поверхностях, поэтому темнее, чем --ink-3. */
+  --line: #666a80;
+  --line-soft: #dce0e8;
+
+  --ink: #4c4f69;
+  --ink-2: #54586e;
+  --ink-3: #63667d;
+
+  /* Персик Mocha в Latte слишком светлый (2.64:1 на фоне), поэтому акцент
+     здесь тот же тон, но затемнённый до 6.58:1. */
+  --accent: #8a4010;
+  --accent-ink: #ffffff;
+  --danger: #aa2333;
+  --ok: #236b24;
+
+  --mark-bg: #d0c0b9;
+  --accent-tint: #d9d1d0;
+  --danger-tint: #decdd5;
+
+  --scrim: rgba(40, 44, 60, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: var(--ui);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-soft);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--line);
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+/* Фокус: видимый всегда, 3:1 к соседям. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Каркас ---------- */
+
+.shell {
+  display: grid;
+  grid-template-columns: 272px 1fr;
+  height: 100%;
+}
+
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--line-soft);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.brand {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.brand h1 {
+  font-family: var(--book);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.2;
+}
+
+.brand .hex-mark {
+  width: 24px;
+  height: 27px;
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.brand-note {
+  margin-top: 8px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+
+.side-nav {
+  padding: 10px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  /* min-height: 0 обязателен: иначе flex-элемент не сжимается ниже своего
+     содержимого, и нижняя панель с характеристиками уезжает за край окна. */
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.nav-group {
+  margin-top: 10px;
+}
+
+.nav-group:first-child {
+  margin-top: 0;
+}
+
+.nav-label {
+  font-size: 10.5px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 8px 10px 4px;
+  font-weight: 600;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-align: left;
+  font-size: 13.5px;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: var(--panel-2);
+  color: var(--ink);
+}
+
+.nav-btn.active {
+  background: var(--panel-2);
+  border-left-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Подсказка клавиши в активном пункте: наследует цвет пункта, потому что
+   лежит на --panel-2, где приглушённый текст не добирает до 4.5:1. */
+.nav-btn.active .kbd-hint {
+  color: inherit;
+}
+
+/* Отключённая команда остаётся читаемой: 0.5 даёт 4.77:1 к фону панели,
+   0.45 давало бы 4.38:1, то есть ниже порога WCAG AA для обычного текста. */
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Команды раздела: они лежат под своим разделом, поэтому нарисованы
+   тише. Отступ и тонкая линия слева показывают принадлежность.
+   Линия несёт смысл (группировка), поэтому берётся --line, а не
+   --line-soft: 3.59:1, проходит 3:1 для нетекстовых элементов. */
+.nav-commands {
+  margin: 2px 0 6px 12px;
+  padding-left: 8px;
+  border-left: 1px solid var(--line);
+}
+
+.nav-action {
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  border-left: 0;
+}
+
+.nav-action:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+.nav-action .kbd-hint {
+  font-size: 9.5px;
+}
+
+.kbd-hint {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  flex: 0 0 auto;
+}
+
+.side-foot {
+  padding: 12px 18px 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+/* ---------- Спецификации: пары «подпись, значение» ---------- */
+
+.spec {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spec > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.spec dt {
+  font-size: 11px;
+  color: var(--ink-3);
+  flex: 0 0 auto;
+}
+
+.spec dd {
+  font-size: 11.5px;
+  font-family: var(--mono);
+  color: var(--ink-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 24px;
+}
+
+.spec-grid > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line-soft);
+  min-width: 0;
+}
+
+.spec-wide {
+  margin: 14px 0 0;
+}
+
+.spec-wide > div {
+  padding-bottom: 4px;
+}
+
+/* ---------- Верхняя панель ---------- */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 22px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--panel);
+  min-height: 54px;
+}
+
+.topbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.topbar .spacer {
+  flex: 1;
+}
+
+.addr {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  padding: 3px 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-sm);
+  max-width: 260px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-toggle {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.nav-toggle-bars {
+  width: 13px;
+  height: 2px;
+  background: currentColor;
+  position: relative;
+  display: inline-block;
+}
+
+.nav-toggle-bars::before,
+.nav-toggle-bars::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 13px;
+  height: 2px;
+  background: currentColor;
+}
+
+.nav-toggle-bars::before {
+  top: -5px;
+}
+.nav-toggle-bars::after {
+  top: 5px;
+}
+
+/* ---------- Содержимое ---------- */
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 26px 40px;
+}
+
+.content-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.narrow {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.archive-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.85fr) minmax(320px, 1.15fr);
+  gap: 16px;
+  align-items: start;
+}
+
+/* Панели разделов: единая плоскость, одна линия, без тени у каждой. */
+.well {
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-lg);
+  padding: 18px 20px 20px;
+}
+
+.well + .well {
+  margin-top: 16px;
+}
+
+.split > .well + .well,
+.archive-layout > .well + .well {
+  margin-top: 0;
+}
+
+.well-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.well-title + .well-title,
+.well .prose + .well-title {
+  margin-top: 18px;
+}
+
+.well-empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.prose {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+.file-line {
+  margin-top: 10px;
+  word-break: break-all;
+}
+
+.state-line {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.state-panel {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--danger);
+  border-radius: var(--r-md);
+  background: var(--panel);
+}
+
+.state-lead {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--danger);
+}
+
+.state-note {
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  word-break: break-word;
+}
+
+/* ---------- Поля и кнопки ---------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.field label {
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+
+.input {
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  color: var(--ink);
+  transition: border-color 0.12s ease;
+  font-size: 13px;
+}
+
+textarea.input {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+/* Видимый индикатор фокуса и на полях, и на кнопках. */
+.input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.input::placeholder {
+  color: var(--ink-3);
+}
+
+select.input {
+  cursor: pointer;
+}
+
+input[type="range"].input {
+  padding: 0;
+  height: 34px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.field-range {
+  max-width: 320px;
+}
+
+.coord-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.coord-row-3 {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.btn:hover {
+  background: var(--bg);
+  border-color: var(--ink-3);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
+.btn-primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  filter: brightness(1.08);
+}
+
+.btn-quiet {
+  background: transparent;
+  /* Граница кнопки должна быть видна, поэтому --line, а не --line-soft:
+     разделитель в --line-soft не читается как граница контрола. */
+  border-color: var(--line);
+  color: var(--ink-2);
+}
+
+.btn-quiet:hover {
+  background: var(--panel-2);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+/* Переключатель темы: подпись говорит, что будет после нажатия,
+   поэтому кнопка не меняет ширину при переключении. */
+.theme-toggle {
+  min-width: 92px;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.icon-btn {
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.icon-btn:hover {
+  background: var(--panel-2);
+  color: var(--ink);
+}
+
+.icon-btn.danger:hover {
+  color: var(--danger);
+}
+
+/* ---------- Читалка: лист с полями ---------- */
+
+.sheet {
+  background: var(--panel);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.sheet-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 60px 40px;
+}
+
+.sheet-lead {
+  font-family: var(--book);
+  font-size: 21px;
+  color: var(--ink);
+}
+
+.sheet-note {
+  font-size: 13px;
+  color: var(--ink-3);
+  max-width: 56ch;
+}
+
+.sheet-rail {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--bg);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.sheet-rail-foot {
+  border-bottom: 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.sheet-rail-main {
+  min-width: 0;
+  flex: 1 1 260px;
+}
+
+.sheet-rail-side {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sheet-title {
+  font-family: var(--book);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.coords {
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+.sheet-body {
+  padding: 26px 34px 30px;
+  font-family: var(--book);
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--ink-2);
+  word-break: break-word;
+  max-width: 74ch;
+}
+
+.sheet-body:focus-visible {
+  outline-offset: -2px;
+}
+
+.sheet-body .line {
+  display: block;
+  white-space: pre-wrap;
+  min-height: 1.75em;
+}
+
+.sheet-body .line:hover {
+  background: var(--panel-2);
+}
+
+.sheet-body mark {
+  background: var(--mark-bg);
+  color: var(--ink);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pager input {
+  width: 68px;
+  min-height: 34px;
+  text-align: center;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.pager input:focus {
+  border-color: var(--accent);
+}
+
+.pager input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.pager .of {
+  font-size: 12px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+}
+
+/* ---------- Оглавление ---------- */
+
+.contents-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2px 18px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.contents-item {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 8px;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.contents-item:hover {
+  background: var(--panel-2);
+  color: var(--ink);
+}
+
+.contents-item.active {
+  background: var(--panel-2);
+  border-left-color: var(--accent);
+  color: var(--ink);
+}
+
+.contents-item .pg {
+  font-size: 11px;
+  color: var(--accent);
+  flex: 0 0 34px;
+}
+
+.contents-item .ttl {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Закладки ---------- */
+
+.bm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bm-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  background: var(--bg);
+}
+
+.bm-item .bm-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.bm-item .bm-addr {
+  font-size: 12px;
+  color: var(--ink);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bm-item .bm-meta {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin: 2px 0 0;
+}
+
+/* ---------- Изображения ---------- */
+
+.img-compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.img-compare figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.img-compare img,
+.plate-figure img {
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  display: block;
+}
+
+.img-compare figcaption,
+.plate-figure figcaption {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plate-figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 640px;
+}
+
+.archive-figure figcaption {
+  text-align: left;
+  word-break: break-all;
+  white-space: normal;
+}
+
+/* ---------- Колоскоп ---------- */
+
+.color-swatch {
+  width: 100%;
+  height: 170px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  margin-bottom: 14px;
+  transition: background 0.04s linear;
+}
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 8px;
+}
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 12px;
+  border: 1px solid var(--line-soft);
+  border-left: 2px solid transparent;
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--ink-2);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.mode-btn:hover {
+  background: var(--panel-2);
+  color: var(--ink);
+}
+
+.mode-btn.active {
+  background: var(--panel-2);
+  border-left-color: var(--accent);
+  color: var(--ink);
+}
+
+.mode-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mode-channels {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+/* ---------- Алфавит ---------- */
+
+.alphabet-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.alphabet-strip span {
+  padding: 2px 5px;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  color: var(--ink-2);
+}
+
+.alphabet-strip span.cyr {
+  background: var(--accent-tint);
+  color: var(--accent);
+}
+
+.alphabet-strip span.punc {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Сообщения и индикатор ---------- */
+
+#toast-host {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-md);
+  padding: 11px 16px;
+  font-size: 13px;
+  color: var(--ink);
+  max-width: 420px;
+  pointer-events: auto;
+  animation: toast-in 0.18s ease;
+}
+
+.toast.error {
+  border-left-color: var(--danger);
+}
+
+.toast.ok {
+  border-left-color: var(--ok);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Спиннер по определению круг, а не «скруглённый прямоугольник». */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.scrim {
+  display: none;
+}
+
+/* ---------- Узкие экраны ---------- */
+
+@media (max-width: 1080px) {
+  .archive-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 264px;
+    z-index: 60;
+    transform: translateX(-100%);
+    transition: transform 0.18s ease;
+    border-right: 1px solid var(--line);
+  }
+
+  body.nav-open .sidebar {
+    transform: none;
+  }
+
+  body.nav-open .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--scrim);
+    z-index: 50;
+  }
+
+  .content {
+    padding: 16px 16px 32px;
+  }
+
+  .sheet-body {
+    padding: 20px 18px 24px;
+    font-size: 15px;
+  }
+
+  .sheet-rail {
+    padding: 10px 16px;
+  }
+
+  .sheet-rail-side {
+    width: 100%;
+  }
+
+  .topbar {
+    padding: 8px 14px;
+    gap: 8px;
+  }
+
+  .topbar-title {
+    font-size: 14px;
+  }
+
+  .addr {
+    display: none;
+  }
+
+  /* Кнопки крупные: палец вместо курсора. */
+  .btn,
+  .nav-btn,
+  .icon-btn,
+  .contents-item {
+    min-height: var(--tap);
+  }
+
+  .nav-btn {
+    padding: 10px;
+  }
+
+  .pager input,
+  .input {
+    min-height: var(--tap);
+  }
+
+  .contents-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .sheet-rail-side .btn {
+    flex: 1 1 auto;
+  }
+}
